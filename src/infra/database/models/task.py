@@ -1,15 +1,8 @@
-from enum import Enum as PyEnum
-
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Enum
 
 from src.infra.database.models.base import Base
-
-
-class Status(PyEnum):
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    DONE = "done"
+from src.domain.entities import Status
 
 
 class Task(Base):
@@ -22,5 +15,5 @@ class Task(Base):
     title: Mapped[str] = mapped_column("title", nullable=False)
     description: Mapped[str] = mapped_column("description", nullable=False)
     status: Mapped[Status] = mapped_column(
-        Enum(Status, name="status_enum"), nullable=False, default=Status.TODO
+        Enum(Status, name="status_enum"), nullable=False
     )
