@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from src.application.interfaces import TaskCreator, TaskReader, TaskUpdater
+from src.application.interfaces import TaskCreator, TaskDeleter, TaskReader, TaskUpdater
 from src.domain.entities import Task, Status
 from src.infra.database.repositories.task import BaseTaskRepo
 
@@ -37,3 +37,11 @@ class TaskUpdaterImpl(TaskUpdater):
     ) -> None:
         task = Task(uuid=uuid, title=title, description=description, status=status)
         await self._task_repo.update_task(task)
+
+
+class TaskDeleterImpl(TaskDeleter):
+    def __init__(self, task_repo: BaseTaskRepo) -> None:
+        self._task_repo = task_repo
+
+    async def delete_task(self, uuid: str) -> None:
+        await self._task_repo.delete_task(uuid)

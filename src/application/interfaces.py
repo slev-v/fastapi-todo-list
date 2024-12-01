@@ -24,3 +24,8 @@ class TaskUpdater(Protocol):
     async def update_task(
         self, uuid: str, title: str, description: str, status: Status
     ) -> None: ...
+
+
+class TaskDeleter(Protocol):
+    @abstractmethod
+    async def delete_task(self, uuid: str) -> None: ...

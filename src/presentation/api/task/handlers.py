@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.application.interfaces import TaskCreator, TaskReader, TaskUpdater
+from src.application.interfaces import TaskCreator, TaskDeleter, TaskReader, TaskUpdater
 from src.domain.entities import Status, Task
 from src.presentation.api.di.stub import (
     provide_task_creator_stub,
+    provide_task_deleter_stub,
     provide_task_reader_stub,
     provide_task_updater_stub,
 )
@@ -49,3 +50,11 @@ async def update_task(
     interactor: TaskUpdater = Depends(provide_task_updater_stub),
 ) -> None:
     await interactor.update_task(uuid, title, description, status)
+
+
+@router.delete("/{task_uuid}")
+async def delete_task(
+    uuid: str,
+    interactor: TaskDeleter = Depends(provide_task_deleter_stub),
+) -> None:
+    await interactor.delete_task(uuid)

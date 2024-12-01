@@ -16,3 +16,7 @@ def provide_task_reader_stub() -> None:
 
 def provide_task_updater_stub() -> None:
     raise NotImplementedError
+
+
+def provide_task_deleter_stub() -> None:
+    raise NotImplementedError
