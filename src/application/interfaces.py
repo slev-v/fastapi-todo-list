@@ -17,3 +17,10 @@ class TaskReader(Protocol):
 
     @abstractmethod
     async def get_all_tasks(self) -> list[Task]: ...
+
+
+class TaskUpdater(Protocol):
+    @abstractmethod
+    async def update_task(
+        self, uuid: str, title: str, description: str, status: Status
+    ) -> None: ...

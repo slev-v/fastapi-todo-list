@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.application.interfaces import TaskCreator, TaskReader
+from src.application.interfaces import TaskCreator, TaskReader, TaskUpdater
 from src.domain.entities import Status, Task
 from src.presentation.api.di.stub import (
     provide_task_creator_stub,
     provide_task_reader_stub,
+    provide_task_updater_stub,
 )
 
 
@@ -37,3 +38,14 @@ async def get_task_by_uuid(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
+
+
+@router.put("/{task_uuid}")
+async def update_task(
+    uuid: str,
+    title: str,
+    description: str,
+    status: Status,
+    interactor: TaskUpdater = Depends(provide_task_updater_stub),
+) -> None:
+    await interactor.update_task(uuid, title, description, status)
