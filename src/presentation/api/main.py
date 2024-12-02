@@ -8,7 +8,7 @@ from src.presentation.api.task.handlers import router as task_router
 def create_app() -> FastAPI:
     app = FastAPI(
         title="todo-list",
-        debug=True,
+        debug=False,
     )
 
     config = load_web_config()
