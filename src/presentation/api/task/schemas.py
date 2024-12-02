@@ -9,6 +9,10 @@ class CreateTaskRequest(BaseModel):
     status: Status = Field(..., title="Task status")
 
 
+class CreateTaskResponse(BaseModel):
+    uuid: str = Field(..., title="Task UUID")
+
+
 class UpdateTaskRequest(BaseModel):
     uuid: str = Field(..., title="Task UUID")
     title: str = Field(..., title="Task title")

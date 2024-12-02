@@ -12,6 +12,7 @@ from src.presentation.api.di.stub import (
 from src.presentation.api.schemas import ErrorSchema
 from src.presentation.api.task.schemas import (
     CreateTaskRequest,
+    CreateTaskResponse,
     UpdateTaskRequest,
     TaskResponse,
     TaskListResponse,
@@ -27,6 +28,7 @@ router = APIRouter(prefix="/tasks")
     description="Endpoint для создания новой задачи. Поле status может принимать значения 'todo', 'in_progress' или 'done'.",
     responses={
         status.HTTP_201_CREATED: {
+            "model": CreateTaskResponse,
             "description": "Задача создана успешно",
         },
         status.HTTP_422_UNPROCESSABLE_ENTITY: {
@@ -34,13 +36,15 @@ router = APIRouter(prefix="/tasks")
         },
     },
     summary="Создание новой задачи",
-    response_class=Response,
 )
 async def create_task(
     data: CreateTaskRequest,
     interactor: TaskCreator = Depends(provide_task_creator_stub),
-) -> None:
-    await interactor.create_new_task(data.title, data.description, data.status)
+) -> CreateTaskResponse:
+    task_uuid = await interactor.create_new_task(
+        data.title, data.description, data.status
+    )
+    return CreateTaskResponse(uuid=task_uuid)
 
 
 @router.get(
@@ -81,10 +85,10 @@ async def get_tasks(
     summary="Получение задачи по UUID",
 )
 async def get_task_by_uuid(
-    uuid: str, interactor: TaskReader = Depends(provide_task_reader_stub)
+    task_uuid: str, interactor: TaskReader = Depends(provide_task_reader_stub)
 ) -> TaskResponse:
     try:
-        task = await interactor.get_task_by_uuid(uuid)
+        task = await interactor.get_task_by_uuid(task_uuid)
 
     except TaskNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
