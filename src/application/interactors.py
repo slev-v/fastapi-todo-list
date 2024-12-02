@@ -24,8 +24,8 @@ class TaskReaderImpl(TaskReader):
     async def get_task_by_uuid(self, uuid: str) -> Task:
         return await self._task_repo.get_task(uuid)
 
-    async def get_all_tasks(self) -> list[Task]:
-        return await self._task_repo.get_tasks()
+    async def get_all_tasks(self, status: Status | None) -> list[Task]:
+        return await self._task_repo.get_tasks(status)
 
 
 class TaskUpdaterImpl(TaskUpdater):

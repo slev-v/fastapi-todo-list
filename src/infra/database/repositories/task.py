@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from src.domain.entities import Status
 from src.domain.entities import Task as TaskEntity
 from src.domain.exceptions import TaskNotFoundException
-from src.infra.database.models.task import Status, Task as TaskModel
+from src.infra.database.models.task import Task as TaskModel
 from src.infra.database.converters import (
     convert_task_entity_to_task_model,
     convert_task_model_to_task_entity,
@@ -22,7 +23,7 @@ class BaseTaskRepo(ABC):
     async def get_task(self, task_uuid: str) -> TaskEntity: ...
 
     @abstractmethod
-    async def get_tasks(self) -> list[TaskEntity]: ...
+    async def get_tasks(self, status: Status | None) -> list[TaskEntity]: ...
 
     @abstractmethod
     async def update_task(self, task: TaskEntity) -> None: ...
@@ -45,8 +46,12 @@ class TaskRepo(BaseTaskRepo):
             raise TaskNotFoundException(task_uuid=task_uuid)
         return convert_task_model_to_task_entity(task)
 
-    async def get_tasks(self) -> list[TaskEntity]:
-        result = await self._session.execute(select(TaskModel))
+    async def get_tasks(self, status: Status | None) -> list[TaskEntity]:
+        query = select(TaskModel)
+        if status:
+            query = query.where(TaskModel.status == status)
+
+        result = await self._session.execute(query)
         tasks = result.scalars().all()
         return [convert_task_model_to_task_entity(task) for task in tasks]
 

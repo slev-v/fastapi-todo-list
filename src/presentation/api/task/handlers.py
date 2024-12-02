@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 
+from src.domain.entities import Status
 from src.application.interfaces import TaskCreator, TaskDeleter, TaskReader, TaskUpdater
 from src.domain.exceptions import TaskNotFoundException
 from src.presentation.api.di.stub import (
@@ -45,16 +46,17 @@ async def create_task(
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    description="Endpoint для получения списка всех задач.",
+    description="Endpoint для получения списка всех задач, с возможностью фильтрации. Поле status может принимать значения 'todo', 'in_progress' или 'done'.",
     responses={
         status.HTTP_200_OK: {"model": TaskListResponse, "description": "Список задач"},
     },
-    summary="Получение списка всех задач",
+    summary="Получение списка всех задач, с возможностью фильтрации",
 )
 async def get_tasks(
+    status: Status | None = None,
     interactor: TaskReader = Depends(provide_task_reader_stub),
 ) -> TaskListResponse:
-    tasks = await interactor.get_all_tasks()
+    tasks = await interactor.get_all_tasks(status)
     return TaskListResponse(
         tasks=[
             TaskResponse(
