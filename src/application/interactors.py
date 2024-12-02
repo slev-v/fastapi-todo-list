@@ -21,7 +21,7 @@ class TaskReaderImpl(TaskReader):
     def __init__(self, task_repo: BaseTaskRepo) -> None:
         self._task_repo = task_repo
 
-    async def get_task_by_uuid(self, uuid: str) -> Task | None:
+    async def get_task_by_uuid(self, uuid: str) -> Task:
         return await self._task_repo.get_task(uuid)
 
     async def get_all_tasks(self) -> list[Task]:

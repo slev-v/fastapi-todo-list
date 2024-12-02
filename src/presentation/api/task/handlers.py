@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 
 from src.application.interfaces import TaskCreator, TaskDeleter, TaskReader, TaskUpdater
+from src.domain.exceptions import TaskNotFoundException
 from src.presentation.api.di.stub import (
     provide_task_creator_stub,
     provide_task_deleter_stub,
@@ -80,9 +81,12 @@ async def get_tasks(
 async def get_task_by_uuid(
     uuid: str, interactor: TaskReader = Depends(provide_task_reader_stub)
 ) -> TaskResponse:
-    task = await interactor.get_task_by_uuid(uuid)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+    try:
+        task = await interactor.get_task_by_uuid(uuid)
+
+    except TaskNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+
     return TaskResponse(
         uuid=task.uuid,
         title=task.title,
@@ -117,8 +121,8 @@ async def update_task(
         await interactor.update_task(
             data.uuid, data.title, data.description, data.status
         )
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    except TaskNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
 
 
 @router.delete(
@@ -140,4 +144,7 @@ async def delete_task(
     uuid: str,
     interactor: TaskDeleter = Depends(provide_task_deleter_stub),
 ) -> None:
-    await interactor.delete_task(uuid)
+    try:
+        await interactor.delete_task(uuid)
+    except TaskNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)

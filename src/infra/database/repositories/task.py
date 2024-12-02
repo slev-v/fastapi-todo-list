@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from src.domain.entities import Task as TaskEntity
+from src.domain.exceptions import TaskNotFoundException
 from src.infra.database.models.task import Status, Task as TaskModel
 from src.infra.database.converters import (
     convert_task_entity_to_task_model,
@@ -18,7 +19,7 @@ class BaseTaskRepo(ABC):
     async def create_new_task(self, task: TaskEntity) -> None: ...
 
     @abstractmethod
-    async def get_task(self, task_uuid: str) -> TaskEntity | None: ...
+    async def get_task(self, task_uuid: str) -> TaskEntity: ...
 
     @abstractmethod
     async def get_tasks(self) -> list[TaskEntity]: ...
@@ -38,10 +39,10 @@ class TaskRepo(BaseTaskRepo):
         self._session.add(convert_task_entity_to_task_model(task))
         await self._session.commit()
 
-    async def get_task(self, task_uuid: str) -> TaskEntity | None:
+    async def get_task(self, task_uuid: str) -> TaskEntity:
         task = await self._session.get(TaskModel, task_uuid)
         if not task:
-            return None
+            raise TaskNotFoundException(task_uuid=task_uuid)
         return convert_task_model_to_task_entity(task)
 
     async def get_tasks(self) -> list[TaskEntity]:
@@ -52,7 +53,7 @@ class TaskRepo(BaseTaskRepo):
     async def update_task(self, task: TaskEntity) -> None:
         task_model = await self._session.get(TaskModel, task.uuid)
         if not task_model:
-            return None
+            raise TaskNotFoundException(task_uuid=task.uuid)
 
         task_model.title = task.title
         task_model.description = task.description
