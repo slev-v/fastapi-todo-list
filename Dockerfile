@@ -22,6 +22,7 @@ RUN apt update -y && \
   pip install --no-cache-dir -r requirements.prod.txt
 
 COPY ./src /app/src
+COPY ./tests /app/tests
 COPY alembic.ini /app
 
 EXPOSE 8000
