@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 
 from src.application.interfaces import TaskCreator, TaskDeleter, TaskReader, TaskUpdater
 from src.presentation.api.di.stub import (
@@ -7,6 +7,7 @@ from src.presentation.api.di.stub import (
     provide_task_reader_stub,
     provide_task_updater_stub,
 )
+from src.presentation.api.schemas import ErrorSchema
 from src.presentation.api.task.schemas import (
     CreateTaskRequest,
     UpdateTaskRequest,
@@ -18,7 +19,21 @@ from src.presentation.api.task.schemas import (
 router = APIRouter(prefix="/tasks")
 
 
-@router.post("/")
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    description="Endpoint для создания новой задачи. Поле status может принимать значения 'todo', 'in_progress' или 'done'.",
+    responses={
+        status.HTTP_201_CREATED: {
+            "description": "Задача создана успешно",
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Ошибка валидации",
+        },
+    },
+    summary="Создание новой задачи",
+    response_class=Response,
+)
 async def create_task(
     data: CreateTaskRequest,
     interactor: TaskCreator = Depends(provide_task_creator_stub),
@@ -26,7 +41,15 @@ async def create_task(
     await interactor.create_new_task(data.title, data.description, data.status)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    description="Endpoint для получения списка всех задач.",
+    responses={
+        status.HTTP_200_OK: {"model": TaskListResponse, "description": "Список задач"},
+    },
+    summary="Получение списка всех задач",
+)
 async def get_tasks(
     interactor: TaskReader = Depends(provide_task_reader_stub),
 ) -> TaskListResponse:
@@ -41,7 +64,19 @@ async def get_tasks(
     )
 
 
-@router.get("/{task_uuid}")
+@router.get(
+    "/{task_uuid}",
+    status_code=status.HTTP_200_OK,
+    description="Endpoint для получения задачи по UUID.",
+    responses={
+        status.HTTP_200_OK: {"model": TaskResponse, "description": "Задача"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorSchema,
+            "description": "Задача не найдена",
+        },
+    },
+    summary="Получение задачи по UUID",
+)
 async def get_task_by_uuid(
     uuid: str, interactor: TaskReader = Depends(provide_task_reader_stub)
 ) -> TaskResponse:
@@ -56,15 +91,51 @@ async def get_task_by_uuid(
     )
 
 
-@router.put("/{task_uuid}")
+@router.put(
+    "/{task_uuid}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description="Endpoint для обновления задачи по UUID. Поле status может принимать значения 'todo', 'in_progress' или 'done'.",
+    responses={
+        status.HTTP_204_NO_CONTENT: {
+            "description": "Задача обновлена успешно",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorSchema,
+            "description": "Задача не найдена",
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Ошибка валидации",
+        },
+    },
+    summary="Обновление задачи по UUID",
+)
 async def update_task(
     data: UpdateTaskRequest,
     interactor: TaskUpdater = Depends(provide_task_updater_stub),
 ) -> None:
-    await interactor.update_task(data.uuid, data.title, data.description, data.status)
+    try:
+        await interactor.update_task(
+            data.uuid, data.title, data.description, data.status
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/{task_uuid}")
+@router.delete(
+    "/{task_uuid}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description="Endpoint для удаления задачи по UUID.",
+    responses={
+        status.HTTP_204_NO_CONTENT: {
+            "description": "Задача удалена успешно",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorSchema,
+            "description": "Задача не найдена",
+        },
+    },
+    summary="Удаление задачи по UUID",
+)
 async def delete_task(
     uuid: str,
     interactor: TaskDeleter = Depends(provide_task_deleter_stub),
