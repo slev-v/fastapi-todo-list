@@ -7,4 +7,4 @@ class TaskNotFoundException(Exception):
 
     @property
     def message(self):
-        return f"Task with uuid: {self.task_uuid} has not been found."
+        return f"Задача с uuid: {self.task_uuid} не была найдена."

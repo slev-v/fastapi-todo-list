@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from src.domain.entities import Status
 
 
-class CreateTaskRequest(BaseModel):
+class TaskRequest(BaseModel):
     title: str = Field(..., title="Task title")
     description: str = Field(..., title="Task description")
     status: Status = Field(..., title="Task status")
@@ -11,13 +11,6 @@ class CreateTaskRequest(BaseModel):
 
 class CreateTaskResponse(BaseModel):
     uuid: str = Field(..., title="Task UUID")
-
-
-class UpdateTaskRequest(BaseModel):
-    uuid: str = Field(..., title="Task UUID")
-    title: str = Field(..., title="Task title")
-    description: str = Field(..., title="Task description")
-    status: Status = Field(..., title="Task status")
 
 
 class TaskResponse(BaseModel):
