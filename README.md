@@ -85,7 +85,7 @@ docker-compose up -d
 5. **Проведение миграций**:
 
 ```bash
-docker-compose exec main-app sh -c "alembic upgrade head
+docker-compose exec main-app sh -c "alembic upgrade head"
 ```
 
 6. **Открытие порта, в брандмауэре сервера**:
